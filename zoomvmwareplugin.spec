@@ -1,5 +1,6 @@
 %define _enable_debug_packages %{nil}
 %define debug_package          %{nil}
+%global _build_id_links alldebug
 
 %bcond_without bundled_qt5
 %global bundled_qt_version 5.9.9
