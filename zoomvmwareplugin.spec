@@ -5,11 +5,11 @@
 %bcond_without bundled_qt5
 %global bundled_qt_version 5.9.9
 
-%global vdi_version 3.1.1
+%global vdi_version 3.1.3
 
 Summary: Zoom thin client plugin for VMware Horizon
 Name: zoomvmwareplugin
-Version: 5.2.456413.0902
+Version: 5.2.470858.0930
 Release: 1
 URL: https://support.zoom.us/hc/en-us/articles/360031096531-Getting-Started-with-VDI
 Source0: https://zoom.us/download/vdi/%{vdi_version}/zoomvmwareplugin-centos_64.rpm#/%{name}-%{version}.x86_64.rpm
@@ -111,6 +111,9 @@ ln -s ../../../etc/pki/tls/certs/ca-bundle.crt %{buildroot}%{_libdir}/%{name}/zc
 /usr/lib/vmware/view/vdpService/libZoomMediaVmware.so
 
 %changelog
+* Mon Oct 05 2020 Dominik Mierzejewski <rpm@greysector.net> 5.2.470858.0930-1
+- update to 5.2.470858.0930 (VDI release 3.1.3)
+
 * Mon Sep 28 2020 Dominik Mierzejewski <rpm@greysector.net> 5.2.456413.0902-1
 - initial build
 - unbundle faac, mpg123 and turbojpeg
