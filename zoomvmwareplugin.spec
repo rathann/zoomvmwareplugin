@@ -5,11 +5,11 @@
 %bcond_without bundled_qt5
 %global bundled_qt_version 5.12.10
 
-%global vdi_version 5.7.5
+%global vdi_version 5.7.6
 
 Summary: Zoom thin client plugin for VMware Horizon
 Name: zoomvmwareplugin
-Version: %{vdi_version}.20811
+Version: %{vdi_version}.20822
 Release: 1
 URL: https://support.zoom.us/hc/en-us/articles/360031096531-Getting-Started-with-VDI
 Source0: https://zoom.us/download/vdi/%{vdi_version}/zoomvmwareplugin-centos_%{vdi_version}_64.rpm#/%{name}-%{version}.x86_64.rpm
@@ -22,6 +22,7 @@ Requires: libmpg123.so.0()(64bit)
 Requires: libturbojpeg.so.0()(64bit)
 Requires: vmware-horizon-client-pcoip
 Provides: bundled(libicu) = 56.1
+Provides: bundled(openvino)
 %if %{with bundled_qt5}
 Provides: bundled(qt5-qtbase) = %{bundled_qt_version}
 Provides: bundled(qt5-qtbase-gui) = %{bundled_qt_version}
@@ -56,8 +57,13 @@ pushd usr/lib/%{name}
 chmod -x \
   *.pcm \
   Qt*/{qmldir,*/*.qml} \
+  ringtone/ring.pcm \
 
-execstack -c zoom
+chmod +x \
+  libclDNN64.so \
+  libmkldnn.so \
+
+execstack -c aomhost
 for f in \
   zoom \
   libicu{data,i18n,uc}.so.56.1 \
@@ -79,13 +85,14 @@ rm -r \
 %endif
   libfdkaac2.so \
   libmpg123.so \
+  libOpenCL.so.1 \
   libturbojpeg.so* \
   getbssid.sh \
 
 crudini --set qt.conf Paths Prefix %{_libdir}/%{name}
 popd
 
-pushd etc/vmware
+pushd etc/zoomvdi/vmware
 for i in PATH LD_LIBRARY_PATH ; do
     crudini --set ZoomMediaVmware.ini ENV ${i} %{_libdir}/%{name}
 done
@@ -95,8 +102,8 @@ popd
 %build
 
 %install
-install -dm755 %{buildroot}{/etc/vmware,%{_libdir}/%{name},/usr/lib}
-install -pm644 etc/vmware/ZoomMediaVmware.ini %{buildroot}/etc/vmware
+install -dm755 %{buildroot}{/etc/zoomvdi/vmware,%{_libdir}/%{name},/usr/lib}
+install -pm644 etc/zoomvdi/vmware/ZoomMediaVmware.ini %{buildroot}/etc/zoomvdi/vmware
 cp -pr usr/lib/%{name} %{buildroot}%{_libdir}
 cp -pr usr/lib/vmware %{buildroot}/usr/lib
 
@@ -106,11 +113,16 @@ ln -s ../libturbojpeg.so.0 %{buildroot}%{_libdir}/%{name}/libturbojpeg.so
 ln -s ../../bin/true %{buildroot}%{_libdir}/%{name}/getbssid.sh
 
 %files
-/etc/vmware/ZoomMediaVmware.ini
+/etc/zoomvdi/vmware/ZoomMediaVmware.ini
 %{_libdir}/%{name}
 /usr/lib/vmware/view/vdpService/libZoomMediaVmware.so
 
 %changelog
+* Mon Oct 25 2021 Dominik Mierzejewski <rpm@greysector.net> 5.7.6.20822-1
+- update to VDI release 5.7.6
+- unbundle OpenCL
+- fix some file permissions
+
 * Mon Oct 25 2021 Dominik Mierzejewski <rpm@greysector.net> 5.7.5.20811-1
 - update to VDI release 5.7.5
 
