@@ -70,17 +70,12 @@ for f in \
 ; do chrpath -d $f ; done
 rm -r \
 %if ! %{with bundled_qt5}
-  audio \
-  egldeviceintegrations \
-  generic \
-  iconengines \
+  bearer \
   imageformats \
   libQt5* \
   platforminputcontexts \
   platforms \
-  platformthemes \
-  Qt{,GraphicalEffects,Qml,Quick{,.2}} \
-  qtdiag \
+  Qt{Qml,Quick{,.2}} \
   xcbglintegrations \
 %endif
   libfdkaac2.so \
