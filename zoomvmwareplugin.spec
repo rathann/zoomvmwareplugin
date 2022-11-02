@@ -5,14 +5,14 @@
 %bcond_without bundled_qt5
 %global bundled_qt_version 5.12.10
 
-%global vdi_version 5.7.8
+%global vdi_version 5.11.9
 
 Summary: Zoom thin client plugin for VMware Horizon
 Name: zoomvmwareplugin
-Version: %{vdi_version}.20826
+Version: %{vdi_version}.21750
 Release: 1
 URL: https://support.zoom.us/hc/en-us/articles/360031096531-Getting-Started-with-VDI
-Source0: https://zoom.us/download/vdi/%{vdi_version}/zoomvmwareplugin-centos_%{vdi_version}_64.rpm#/%{name}-%{version}.x86_64.rpm
+Source0: https://cdn.zoom.us/prod/vdi/%{version}/zoomvmwareplugin-centos_%{vdi_version}.rpm#/%{name}-%{version}.x86_64.rpm
 License: Zoom
 ExclusiveArch: x86_64
 BuildRequires: chrpath
@@ -55,9 +55,7 @@ rpm2cpio %{S:0} | \
 
 pushd usr/lib/%{name}
 chmod -x \
-  *.pcm \
   Qt*/{qmldir,*/*.qml} \
-  ringtone/ring.pcm \
 
 chmod +x \
   libclDNN64.so \
@@ -87,18 +85,19 @@ rm -r \
 crudini --set qt.conf Paths Prefix %{_libdir}/%{name}
 popd
 
-pushd etc/zoomvdi/vmware
+pushd etc/zoomvdi
 for i in PATH LD_LIBRARY_PATH ; do
-    crudini --set ZoomMediaVmware.ini ENV ${i} %{_libdir}/%{name}
+    crudini --set ZoomMedia.ini ENV ${i} %{_libdir}/%{name}
 done
-crudini --set ZoomMediaVmware.ini OS OS_DISTRO fedora
+crudini --set ZoomMedia.ini OS OS_DISTRO fedora
+crudini --set ZoomMedia.ini FEATURE SMARTVB 1
 popd
 
 %build
 
 %install
-install -dm755 %{buildroot}{/etc/zoomvdi/vmware,%{_libdir}/%{name},/usr/lib}
-install -pm644 etc/zoomvdi/vmware/ZoomMediaVmware.ini %{buildroot}/etc/zoomvdi/vmware
+install -dm755 %{buildroot}{/etc/zoomvdi,%{_libdir}/%{name},/usr/lib}
+install -pm644 etc/zoomvdi/ZoomMedia.ini %{buildroot}/etc/zoomvdi
 cp -pr usr/lib/%{name} %{buildroot}%{_libdir}
 cp -pr usr/lib/vmware %{buildroot}/usr/lib
 
@@ -108,11 +107,15 @@ ln -s ../libturbojpeg.so.0 %{buildroot}%{_libdir}/%{name}/libturbojpeg.so
 ln -s ../../bin/true %{buildroot}%{_libdir}/%{name}/getbssid.sh
 
 %files
-/etc/zoomvdi/vmware/ZoomMediaVmware.ini
+/etc/zoomvdi/ZoomMedia.ini
 %{_libdir}/%{name}
 /usr/lib/vmware/view/vdpService/libZoomMediaVmware.so
 
 %changelog
+* Wed Nov 02 2022 Dominik Mierzejewski <dominik@greysector.net> 5.11.9.21750-1
+- update to VDI release 5.11.9
+- update Source URL
+
 * Mon Nov 22 2021 Dominik Mierzejewski <rpm@greysector.net> 5.7.8.20826-1
 - update to VDI release 5.7.8
 
