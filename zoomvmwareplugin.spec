@@ -5,11 +5,11 @@
 %bcond_without bundled_qt5
 %global bundled_qt_version 5.12.10
 
-%global vdi_version 5.13.1
+%global vdi_version 5.14.11
 
 Summary: Zoom thin client plugin for VMware Horizon
 Name: zoomvmwareplugin
-Version: %{vdi_version}.22610
+Version: %{vdi_version}.23790
 Release: 1
 URL: https://support.zoom.us/hc/en-us/articles/360031096531-Getting-Started-with-VDI
 Source0: https://cdn.zoom.us/prod/vdi/%{version}/zoomvmwareplugin-centos_%{vdi_version}.rpm#/%{name}-%{version}.x86_64.rpm
@@ -34,7 +34,7 @@ Provides: bundled(qt5-qtscript) = %{bundled_qt_version}
 Provides: bundled(qt5-qtx11extras) = %{bundled_qt_version}
 
 # Qt5 cannot be unbundled as the application uses private APIs
-%global __requires_exclude ^lib\(icu\(data\|i18n\|uc\)\|Qt5\(Core\|DBus\|Gui\|Network\|Qml\|Quick\|RemoteObjects\|Script\|Svg\|Widgets\|X11Extras\|XcbQpa\)\|vdpservice\)
+%global __requires_exclude ^lib\(icu\(data\|i18n\|uc\)\|Qt5\(3D\(Animation\|Core\|Input\|Logic\|Quick\|QuickScene2D\|Render\)\|Bodymovin\|Concurrent\|Core\|DBus\|EglFSDeviceIntegration\|EglFsKmsSupport\|Gamepad\|Gui\|Multimedia\|Network\|Qml\|Quick\|RemoteObjects\|Script\|Sql\|Svg\|WaylandClient\|Widgets\|X11Extras\|XcbQpa\|XmlPatterns\)\|vdpservice\)
 %else
 %global __requires_exclude ^lib\(icu\(data\|i18n\|uc\)\|vdpservice\)
 %endif
@@ -54,28 +54,25 @@ rpm2cpio %{S:0} | \
     cpio --extract --make-directories --no-absolute-filenames --preserve-modification-time
 
 pushd usr/lib/%{name}
-chmod -x \
-  Qt*/{qmldir,*/*.qml} \
+find Qt/qml -type f -name qmldir -o -name *.qml | xargs chmod -x
 
 chmod +x \
   libclDNN64.so \
   libmkldnn.so \
+  libquazip.so \
 
 execstack -c aomhost
 for f in \
   zoom \
   libdvf.so \
-  libicu{data,i18n,uc}.so.56.1 \
+  libquazip.so \
+  Qt/lib/libicu{data,i18n,uc}.so.56 \
 ; do chrpath -d $f ; done
 rm -r \
 %if ! %{with bundled_qt5}
-  bearer \
-  imageformats \
-  libQt5* \
-  platforminputcontexts \
-  platforms \
-  Qt{Qml,Quick{,.2}} \
-  xcbglintegrations \
+  Qt \
+  libquazip.so \
+  qt.conf \
 %endif
   libfdkaac2.so \
   libmpg123.so \
@@ -113,6 +110,9 @@ ln -s ../../bin/true %{buildroot}%{_libdir}/%{name}/getbssid.sh
 /usr/lib/vmware/view/vdpService/libZoomMediaVmware.so
 
 %changelog
+* Thu Oct 12 2023 Dominik Mierzejewski <dominik@greysector.net> 5.14.11.23790-1
+- update to VDI release 5.14.11
+
 * Tue May 23 2023 Dominik Mierzejewski <dominik@greysector.net> 5.13.1.22610-1
 - update to VDI release 5.13.1
 
