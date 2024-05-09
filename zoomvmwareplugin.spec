@@ -5,11 +5,11 @@
 %bcond_without bundled_qt5
 %global bundled_qt_version 5.15.11
 
-%global vdi_version 5.13.12
+%global vdi_version 5.14.15
 
 Summary: Zoom thin client plugin for VMware Horizon
 Name: zoomvmwareplugin
-Version: %{vdi_version}.23740
+Version: %{vdi_version}.24580
 Release: 1
 URL: https://support.zoom.us/hc/en-us/articles/360031096531-Getting-Started-with-VDI
 Source0: https://cdn.zoom.us/prod/vdi/%{version}/zoomvmwareplugin-centos_%{vdi_version}.rpm#/%{name}-%{version}.x86_64.rpm
@@ -111,6 +111,9 @@ ln -s ../../bin/true %{buildroot}%{_libdir}/%{name}/getbssid.sh
 /usr/lib/vmware/view/vdpService/libZoomMediaVmware.so
 
 %changelog
+* Thu May 09 2024 Dominik Mierzejewski <dominik@greysector.net> 5.14.15.24580-1
+- update to VDI release 5.14.15
+
 * Thu May 09 2024 Dominik Mierzejewski <dominik@greysector.net> 5.13.12.23740-1
 - update to VDI release 5.13.12
 - update bundled components
