@@ -3,13 +3,13 @@
 %global _build_id_links alldebug
 
 %bcond_without bundled_qt5
-%global bundled_qt_version 5.12.10
+%global bundled_qt_version 5.15.11
 
-%global vdi_version 5.13.1
+%global vdi_version 5.13.12
 
 Summary: Zoom thin client plugin for VMware Horizon
 Name: zoomvmwareplugin
-Version: %{vdi_version}.22610
+Version: %{vdi_version}.23740
 Release: 1
 URL: https://support.zoom.us/hc/en-us/articles/360031096531-Getting-Started-with-VDI
 Source0: https://cdn.zoom.us/prod/vdi/%{version}/zoomvmwareplugin-centos_%{vdi_version}.rpm#/%{name}-%{version}.x86_64.rpm
@@ -18,9 +18,11 @@ ExclusiveArch: x86_64
 BuildRequires: chrpath
 BuildRequires: crudini
 BuildRequires: execstack
+Requires: fdk-aac
 Requires: libmpg123.so.0()(64bit)
 Requires: libturbojpeg.so.0()(64bit)
 Requires: vmware-horizon-client-pcoip
+Provides: bundled(ffmpeg) = 4.2.7
 Provides: bundled(libicu) = 56.1
 Provides: bundled(openvino)
 %if %{with bundled_qt5}
@@ -34,9 +36,9 @@ Provides: bundled(qt5-qtscript) = %{bundled_qt_version}
 Provides: bundled(qt5-qtx11extras) = %{bundled_qt_version}
 
 # Qt5 cannot be unbundled as the application uses private APIs
-%global __requires_exclude ^lib\(icu\(data\|i18n\|uc\)\|Qt5\(Core\|DBus\|Gui\|Network\|Qml\|Quick\|RemoteObjects\|Script\|Svg\|Widgets\|X11Extras\|XcbQpa\)\|vdpservice\)
+%global __requires_exclude ^lib\(avcodec\|avformat\|avutil\|swresample\|icu\(data\|i18n\|uc\)\|Qt5\(3D\(Animation\|Core\|Input\|Logic\|Quick\|QuickScene2D\|Render\)\|Bodymovin\|Concurrent\|Core\|DBus\|EglFSDeviceIntegration\|EglFsKmsSupport\|Gamepad\|Gui\|Multimedia\|Network\|Qml\|Quick\|RemoteObjects\|Script\|Sql\|Svg\|WaylandClient\|Widgets\|X11Extras\|XcbQpa\|XmlPatterns\)\|vdpservice\)
 %else
-%global __requires_exclude ^lib\(icu\(data\|i18n\|uc\)\|vdpservice\)
+%global __requires_exclude ^lib\(avcodec\|avformat\|avutil\|swresample\|icu\(data\|i18n\|uc\)\|vdpservice\)
 %endif
 %global __provides_exclude_from ^(%{_libdir}/%{name}|/usr/lib/vmware)
 
@@ -54,28 +56,25 @@ rpm2cpio %{S:0} | \
     cpio --extract --make-directories --no-absolute-filenames --preserve-modification-time
 
 pushd usr/lib/%{name}
-chmod -x \
-  Qt*/{qmldir,*/*.qml} \
+find Qt/qml -type f -name qmldir -o -name *.qml | xargs chmod -x
 
 chmod +x \
   libclDNN64.so \
   libmkldnn.so \
+  libquazip.so \
 
 execstack -c aomhost
 for f in \
   zoom \
   libdvf.so \
-  libicu{data,i18n,uc}.so.56.1 \
+  libquazip.so \
+  Qt/lib/libicu{data,i18n,uc}.so.56 \
 ; do chrpath -d $f ; done
 rm -r \
 %if ! %{with bundled_qt5}
-  bearer \
-  imageformats \
-  libQt5* \
-  platforminputcontexts \
-  platforms \
-  Qt{Qml,Quick{,.2}} \
-  xcbglintegrations \
+  Qt \
+  libquazip.so \
+  qt.conf \
 %endif
   libfdkaac2.so \
   libmpg123.so \
@@ -83,13 +82,12 @@ rm -r \
   libturbojpeg.so* \
   getbssid.sh \
 
-crudini --set qt.conf Paths Prefix %{_libdir}/%{name}
+crudini --set qt.conf Paths Prefix %{_libdir}/%{name}/Qt
 popd
 
 pushd etc/zoomvdi
-for i in PATH LD_LIBRARY_PATH ; do
-    crudini --set ZoomMedia.ini ENV ${i} %{_libdir}/%{name}
-done
+crudini --set ZoomMedia.ini ENV PATH %{_libdir}/%{name}
+crudini --set ZoomMedia.ini ENV LD_LIBRARY_PATH %{_libdir}/%{name}/Qt/lib
 crudini --set ZoomMedia.ini OS OS_DISTRO fedora
 crudini --set ZoomMedia.ini FEATURE SMARTVB 1
 popd
@@ -113,6 +111,12 @@ ln -s ../../bin/true %{buildroot}%{_libdir}/%{name}/getbssid.sh
 /usr/lib/vmware/view/vdpService/libZoomMediaVmware.so
 
 %changelog
+* Thu May 09 2024 Dominik Mierzejewski <dominik@greysector.net> 5.13.12.23740-1
+- update to VDI release 5.13.12
+- update bundled components
+- filter out bundled FFmpeg from Requires:
+- fix paths
+
 * Tue May 23 2023 Dominik Mierzejewski <dominik@greysector.net> 5.13.1.22610-1
 - update to VDI release 5.13.1
 
